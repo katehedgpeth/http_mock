@@ -1,6 +1,10 @@
 defmodule HTTPMock do
   use GenServer
-  alias HTTPMock.Headers
+
+  alias HTTPMock.{
+    Headers,
+    Recorder
+  }
 
   @moduledoc """
   Documentation for HTTPMock.
@@ -19,13 +23,17 @@ defmodule HTTPMock do
   Hello world.
   """
   def get(url, headers, params, opts \\ []) when is_list(opts) do
-    opts
-    |> Keyword.get(:name, __MODULE__)
-    |> GenServer.call({:get, url: url, headers: headers, params: params})
-    |> case do
-      {:ok, %HTTPoison.Response{}} = response -> response
-      {:error, %HTTPoison.Error{}} = error -> error
-      {:error, %NotFoundError{} = error} -> raise error
+    if Application.get_env(:http_mock, :record?, false) do
+      Recorder.get(url, headers, params, opts)
+    else
+      opts
+      |> Keyword.get(:name, __MODULE__)
+      |> GenServer.call({:get, url: url, headers: headers, params: params})
+      |> case do
+        {:ok, %HTTPoison.Response{}} = response -> response
+        {:error, %HTTPoison.Error{}} = error -> error
+        {:error, %NotFoundError{} = error} -> raise error
+      end
     end
   end
 

@@ -82,6 +82,43 @@ defmodule HTTPMockTest do
         fn -> HTTPMock.get("http://www.yahoo.com", [], [], name: name) end
       )
     end
+
+    test "records if :record? config is set to true", %{
+      name: name,
+      recorder_name: recorder_name,
+      file_name: file_name
+    } do
+      url = "http://www.google.com"
+
+      {:ok, recorder_pid} =
+        Recorder.start_link(name: recorder_name, file_name: file_name, parent: self())
+
+      {:ok, %HTTPoison.Response{}} = Recorder.get(url, [], [], name: recorder_pid)
+      wait_for_write()
+
+      file_path =
+        recorder_name
+        |> Recorder.state()
+        |> Recorder.file_path()
+
+      on_exit(fn ->
+        Application.put_env(:http_mock, :record?, false)
+        File.rm(file_path)
+      end)
+
+      {:ok, _} = HTTPMock.start_link(name: name, file_name: file_name, parent: self())
+
+      Application.put_env(:http_mock, :record?, true)
+
+      assert {:ok, %HTTPoison.Response{} = response} =
+               HTTPMock.get("http://www.yahoo.com", [], [], name: recorder_name)
+
+      assert_receive {:record,
+                      url: "http://www.yahoo.com",
+                      headers: [],
+                      params: [],
+                      response: {:ok, ^response}}
+    end
   end
 
   def wait_for_write do
