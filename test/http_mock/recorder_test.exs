@@ -6,16 +6,22 @@ defmodule HTTPMock.RecorderTest do
     record_folder = Application.app_dir(:http_mock, "priv")
     File.mkdir_p(record_folder)
     Application.put_env(:http_mock, :record_folder, record_folder)
+
+    on_exit(fn ->
+      Application.delete_env(:http_mock, :record_folder)
+    end)
   end
 
   setup tags do
     name = :"recorder_test_#{tags.line}"
     file_name = "#{name}.txt"
     {:ok, pid} = Recorder.start_link(name: name, file_name: file_name, parent: self())
+
     file_path =
-    name
-    |> Recorder.state()
-    |> Recorder.file_path()
+      name
+      |> Recorder.state()
+      |> Recorder.file_path()
+
     File.rm(file_path)
 
     on_exit(fn ->

@@ -34,12 +34,12 @@ defmodule HTTPMock.Recorder do
 
   def file_path(%State{file_name: file_name}) do
     :http_mock
-    |> Application.get_env(:record_folder)
+    |> Application.fetch_env!(:record_folder)
     |> Path.join(file_name)
   end
 
   def init(opts) do
-    file_name = Keyword.get(opts, :file_name, "http_mock_record.txt")
+    file_name = Keyword.get(opts, :file_name, Application.fetch_env!(:http_mock, :file_name))
     parent = Keyword.get(opts, :parent)
 
     ets =
