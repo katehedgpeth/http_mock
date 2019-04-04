@@ -1,4 +1,4 @@
-# HttpMock
+# HTTPMock
 
 **TODO: Add description**
 

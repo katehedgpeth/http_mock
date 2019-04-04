@@ -1,4 +1,4 @@
-defmodule HttpMockTest do
+defmodule HTTPMockTest do
   use ExUnit.Case
   doctest HttpMock
 
