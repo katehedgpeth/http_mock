@@ -1,4 +1,5 @@
 defmodule HTTPMock.Recorder do
+  require Logger
   use GenServer
   alias HTTPoison.Response
   alias HTTPMock.Headers
@@ -90,8 +91,6 @@ defmodule HTTPMock.Recorder do
       when not is_nil(ets) do
     :ets.insert(ets, {url, Headers.clean(headers), params, response})
     {:add_to_ets, :ok}
-    # rescue
-    #   error -> {:add_to_ets, {:error, error}}
   end
 
   def write_ets_to_file(%State{} = state) do
@@ -101,6 +100,7 @@ defmodule HTTPMock.Recorder do
       |> String.to_charlist()
 
     :ets.tab2file(state.ets, path)
+    _ = Logger.warn("File written to #{path}")
 
     {:write_ets_to_file, :ok}
   rescue
